@@ -42,6 +42,7 @@ RESOURCES = {
     'item_booking_availability':
         'bibs/{mms_id}/holdings/{holding_id}/items/' +
         '{item_pid}/booking-availability',
+    'collection': 'bibs/collections/{collection_pid}',
     'collection_bibs': 'bibs/collections/{collection_pid}/bibs',
     'bib_representations': 'bibs/{mms_id}/representations',
     'bib_representation_files': 'bibs/{mms_id}/representations/{repr_id}/files',    
@@ -248,6 +249,10 @@ class Alma(object):
                                 accept=accept)
         return self.extract_content(response)
     
+    def get_collection(self, collection_pid, accept='json'):
+        response = self.request('GET', 'collection', {'collection_pid': collection_pid},
+                                params={'level': '2'}, accept=accept)
+        return self.extract_content(response)
 
     def get_collection_bibs(self, collection_pid, accept='json'):
         response = self.request('GET', 'collection_bibs', {'collection_pid': collection_pid},
