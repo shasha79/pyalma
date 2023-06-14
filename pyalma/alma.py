@@ -5,7 +5,7 @@ import requests
 # imports for coroutines
 import asyncio
 import aiohttp
-from aiohttp import ClientSession, web, errors
+from aiohttp import ClientSession, web
 import time
 from ratelimiter import RateLimiter
 
@@ -35,9 +35,6 @@ RESOURCES = {
     'items': 'bibs/{mms_id}/holdings/{holding_id}/items',
     'item': 'bibs/{mms_id}/holdings/{holding_id}/items/{item_pid}',
     'bib_requests': 'bibs/{mms_id}/requests',
-    'item_requests':
-        'bibs/{mms_id}/holdings/{holding_id}/items/{item_pid}/requests',
-    'bib_requests': 'bibs/{mms_id}/requests',
     'bib_request': 'bibs/{mms_id}/requests/{request_id}',
     'item_requests': 'bibs/{mms_id}/holdings/{holding_id}/items/{item_pid}/requests',
     'item_request': 'bibs/{mms_id}/holdings/{holding_id}/items/{item_pid}/requests/{request_id}',
@@ -45,6 +42,9 @@ RESOURCES = {
     'item_booking_availability':
         'bibs/{mms_id}/holdings/{holding_id}/items/' +
         '{item_pid}/booking-availability',
+    'collection_bibs': 'bibs/collections/{collection_pid}/bibs',
+    'bib_representations': 'bibs/{mms_id}/representations',
+    'bib_representation_files': 'bibs/{mms_id}/representations/{repr_id}/files',    
     'loan': 'bibs/{mms_id}/holdings/{holding_id}/items/{item_pid}/loans',
     'requested_resources': 'task-lists/requested-resources',
     'users': 'users',
@@ -247,6 +247,25 @@ class Alma(object):
                                  'item_pid': item_pid},
                                 accept=accept)
         return self.extract_content(response)
+    
+
+    def get_collection_bibs(self, collection_pid, accept='json'):
+        response = self.request('GET', 'collection_bibs', {'collection_pid': collection_pid},
+                                accept=accept)
+        return self.extract_content(response)
+
+    def get_bib_representations(self, mms_id, accept='json'):
+        response = self.request('GET', 'bib_representations', {'mms_id': mms_id},
+                                accept=accept)
+        return self.extract_content(response)
+
+    def get_bib_representation_files(self, mms_id, repr_id, accept='json'):
+        response = self.request('GET', 'bib_representation_files', {'mms_id': mms_id,
+                                                                    'repr_id': repr_id},
+                                params={'expand': 'url'},
+                                accept=accept)
+        return self.extract_content(response)
+
 
     def get_users(self, accept='json'):
         response = self.request('GET', 'users', accept=accept)
@@ -324,7 +343,7 @@ class Alma(object):
                 else:
                     body = await response.text(encoding='utf-8')
                 return (ids, status, body)
-            except aiohttp.errors.HttpProcessingError:
+            except aiohttp.HttpProcessingError:
                 body = await response.text()
                 msg = "\nError in {} \n  HTTP Status: {}\n  Method: {}\n  URL: {}\n  Response: {}".format(ids, status, method, url, body)
 
